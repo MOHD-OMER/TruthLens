@@ -1,11 +1,9 @@
 flask
+flask-sqlalchemy
+tensorflow==2.13.0
+nltk
+scikit-learn
 pandas
 numpy
-matplotlib
-seaborn
-nltk
-wordcloud
-tensorflow
-scikit-learn
+gunicorn
 pillow
-xgboost
