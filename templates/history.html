@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}History — TruthLens{% endblock %}
+
+{% block head %}
+<style>
+  .history-page {
+    padding: 3rem 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .page-title {
+    font-family: var(--font-h);
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+
+  .page-sub {
+    font-family: var(--font-m);
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    margin-top: 0.25rem;
+  }
+
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead th {
+    padding: 0.85rem 1.5rem;
+    text-align: left;
+    font-family: var(--font-m);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+
+  tbody td {
+    padding: 1rem 1.5rem;
+    font-size: 0.85rem;
+    color: var(--text-2);
+    border-bottom: 1px solid rgba(30,30,46,0.5);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(30,30,46,0.5); }
+
+  .td-snippet {
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-b);
+    font-weight: 300;
+  }
+
+  .td-mono {
+    font-family: var(--font-m);
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  /* Pagination */
+  .pagination {
+    display: flex; justify-content: center; align-items: center; gap: 0.5rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .page-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px;
+    border-radius: var(--radius);
+    font-family: var(--font-m);
+    font-size: 0.8rem;
+    text-decoration: none;
+    color: var(--text-2);
+    background: var(--border);
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+
+  .page-btn:hover { color: var(--text); background: var(--muted); }
+  .page-btn.active { background: var(--accent); color: #000; font-weight: 600; border-color: var(--accent); }
+  .page-btn.disabled { opacity: 0.3; pointer-events: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history-page">
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Detection History</h2>
+      <p class="page-sub">ALL RECORDS · PAGE {{ records.page }} OF {{ records.pages }}</p>
+    </div>
+    <a href="{{ url_for('home') }}" class="btn btn-primary">+ Analyze New Text</a>
+  </div>
+
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Text Snippet</th>
+          <th>Result</th>
+          <th>Confidence</th>
+          <th>IP</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records.items %}
+        <tr>
+          <td class="td-mono">{{ r.id }}</td>
+          <td class="td-snippet">{{ r.input_text[:100] }}…</td>
+          <td>
+            {% if r.result == 'Fake News' %}
+              <span class="tag tag-fake">FAKE</span>
+            {% else %}
+              <span class="tag tag-real">REAL</span>
+            {% endif %}
+          </td>
+          <td class="td-mono">{{ r.confidence }}%</td>
+          <td class="td-mono">{{ r.user_ip or '—' }}</td>
+          <td class="td-mono">{{ r.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" style="text-align:center;color:var(--muted);padding:4rem;font-family:var(--font-m)">
+            No records yet. <a href="{{ url_for('home') }}" style="color:var(--accent)">Run your first analysis →</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if records.pages > 1 %}
+    <div class="pagination">
+      <a href="{{ url_for('history', page=records.prev_num) }}" class="page-btn {% if not records.has_prev %}disabled{% endif %}">←</a>
+      {% for p in records.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+        {% if p %}
+          <a href="{{ url_for('history', page=p) }}" class="page-btn {% if p == records.page %}active{% endif %}">{{ p }}</a>
+        {% else %}
+          <span class="page-btn" style="background:none;color:var(--muted)">…</span>
+        {% endif %}
+      {% endfor %}
+      <a href="{{ url_for('history', page=records.next_num) }}" class="page-btn {% if not records.has_next %}disabled{% endif %}">→</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

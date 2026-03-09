@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% block title %}About — TruthLens{% endblock %}
+
+{% block head %}
+<style>
+  .about-page { max-width: 900px; margin: 0 auto; padding: 5rem 2rem; }
+
+  .about-eyebrow {
+    font-family: var(--font-m);
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .about-eyebrow::before { content:''; display:block; width:24px; height:1px; background:var(--accent); }
+
+  .about-h1 {
+    font-family: var(--font-h);
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.08;
+    margin-bottom: 1.5rem;
+  }
+
+  .about-lead {
+    font-size: 1.05rem;
+    color: var(--text-2);
+    font-weight: 300;
+    line-height: 1.75;
+    max-width: 680px;
+    margin-bottom: 4rem;
+    border-left: 2px solid var(--accent);
+    padding-left: 1.5rem;
+  }
+
+  .section-title {
+    font-family: var(--font-h);
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 4rem;
+  }
+
+  .arch-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: border-color 0.2s;
+  }
+
+  .arch-card:hover { border-color: var(--accent); }
+
+  .arch-icon { font-size: 1.5rem; margin-bottom: 0.75rem; display: block; }
+
+  .arch-name {
+    font-family: var(--font-h);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    color: var(--text);
+  }
+
+  .arch-desc {
+    font-size: 0.82rem;
+    color: var(--text-2);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  .tech-row {
+    display: flex; flex-wrap: wrap; gap: 0.6rem;
+    margin-bottom: 4rem;
+  }
+
+  .tech-pill {
+    background: var(--border);
+    border: 1px solid var(--muted);
+    border-radius: 100px;
+    padding: 0.35rem 0.9rem;
+    font-family: var(--font-m);
+    font-size: 0.75rem;
+    color: var(--text-2);
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 3rem 0;
+  }
+
+  .perf-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 4rem;
+  }
+
+  .perf-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .perf-num {
+    font-family: var(--font-h);
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--accent);
+    display: block;
+    letter-spacing: -0.04em;
+  }
+
+  .perf-label {
+    font-family: var(--font-m);
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="about-page">
+  <p class="about-eyebrow">Project Overview</p>
+
+  <h1 class="about-h1">TruthLens —<br>AI-Powered Fake News Detection</h1>
+
+  <p class="about-lead">
+    A deep learning system that classifies news articles and headlines using a
+    hybrid CNN-LSTM architecture trained on labeled real and fake news corpora.
+    Built as an end-to-end production Flask application with database logging,
+    REST API, and real-time analytics.
+  </p>
+
+  <h2 class="section-title">Model Architecture</h2>
+  <div class="arch-grid">
+    <div class="arch-card">
+      <span class="arch-icon">🔤</span>
+      <div class="arch-name">Embedding Layer</div>
+      <p class="arch-desc">Learned word embeddings map vocabulary tokens into dense semantic vectors for downstream processing.</p>
+    </div>
+    <div class="arch-card">
+      <span class="arch-icon">🧱</span>
+      <div class="arch-name">Conv1D (CNN)</div>
+      <p class="arch-desc">Convolutional filters extract local n-gram patterns and keyword-level features from text sequences.</p>
+    </div>
+    <div class="arch-card">
+      <span class="arch-icon">🔄</span>
+      <div class="arch-name">LSTM Layer</div>
+      <p class="arch-desc">Long Short-Term Memory captures long-range sequential dependencies and discourse-level signals.</p>
+    </div>
+    <div class="arch-card">
+      <span class="arch-icon">🎛</span>
+      <div class="arch-name">Dropout</div>
+      <p class="arch-desc">Regularization layers prevent overfitting on training data and improve generalization to unseen text.</p>
+    </div>
+    <div class="arch-card">
+      <span class="arch-icon">⚡</span>
+      <div class="arch-name">Dense + Sigmoid</div>
+      <p class="arch-desc">Fully connected output layer produces a probability score in [0, 1]: closer to 1 signals real news.</p>
+    </div>
+    <div class="arch-card">
+      <span class="arch-icon">📐</span>
+      <div class="arch-name">Sequence Length</div>
+      <p class="arch-desc">Text is tokenized and padded to a fixed 100-token window for consistent model input shape.</p>
+    </div>
+  </div>
+
+  <h2 class="section-title">Performance Metrics</h2>
+  <div class="perf-grid">
+    <div class="perf-card">
+      <span class="perf-num">94.2%</span>
+      <span class="perf-label">Test Accuracy</span>
+    </div>
+    <div class="perf-card">
+      <span class="perf-num">93.8%</span>
+      <span class="perf-label">Precision</span>
+    </div>
+    <div class="perf-card">
+      <span class="perf-num">94.6%</span>
+      <span class="perf-label">Recall</span>
+    </div>
+    <div class="perf-card">
+      <span class="perf-num">94.2%</span>
+      <span class="perf-label">F1 Score</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h2 class="section-title">Tech Stack</h2>
+  <div class="tech-row">
+    <span class="tech-pill">Python 3.11</span>
+    <span class="tech-pill">TensorFlow 2.x</span>
+    <span class="tech-pill">Keras</span>
+    <span class="tech-pill">Flask</span>
+    <span class="tech-pill">Flask-SQLAlchemy</span>
+    <span class="tech-pill">SQLite</span>
+    <span class="tech-pill">NLTK</span>
+    <span class="tech-pill">scikit-learn</span>
+    <span class="tech-pill">pandas</span>
+    <span class="tech-pill">Chart.js</span>
+    <span class="tech-pill">CNN-LSTM Hybrid</span>
+    <span class="tech-pill">REST API</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <h2 class="section-title">REST API</h2>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;font-family:var(--font-m);font-size:0.82rem;line-height:2;">
+    <span style="color:var(--accent)">POST</span>
+    <span style="color:var(--text)"> /api/predict</span><br>
+    <span style="color:var(--muted)">Content-Type: application/json</span><br><br>
+    <span style="color:var(--text-2)">Request: </span><span style="color:#9090ff">{ "text": "your article here" }</span><br>
+    <span style="color:var(--text-2)">Response: </span><span style="color:#9090ff">{ "prediction": "...", "confidence": 91.3, "raw_score": 0.913 }</span>
+  </div>
+
+</div>
+{% endblock %}

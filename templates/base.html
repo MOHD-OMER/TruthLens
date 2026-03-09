@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}TruthLens — AI Fake News Detector{% endblock %}</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Reset & Tokens ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0a0a0f;
+      --surface: #12121a;
+      --border:  #1e1e2e;
+      --accent:  #e8ff3c;
+      --danger:  #ff4d6d;
+      --safe:    #3cffa0;
+      --muted:   #555572;
+      --text:    #e8e8f0;
+      --text-2:  #9090a8;
+      --font-h:  'Syne', sans-serif;
+      --font-m:  'DM Mono', monospace;
+      --font-b:  'Inter', sans-serif;
+      --radius:  6px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-b);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+    }
+
+    /* ── Noise texture overlay ──────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Nav ────────────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2.5rem;
+      height: 64px;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--font-h);
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      text-decoration: none;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+
+    .nav-logo span {
+      background: var(--accent);
+      color: #000;
+      padding: 0 0.35rem;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-family: var(--font-m);
+      font-weight: 500;
+      vertical-align: middle;
+      letter-spacing: 0;
+    }
+
+    .nav-links {
+      display: flex; align-items: center; gap: 0.25rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-2);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 400;
+      padding: 0.4rem 0.9rem;
+      border-radius: var(--radius);
+      transition: color 0.2s, background 0.2s;
+      letter-spacing: 0.02em;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--text);
+      background: var(--border);
+    }
+
+    .nav-links .btn-nav {
+      color: #000;
+      background: var(--accent);
+      font-weight: 600;
+      padding: 0.4rem 1rem;
+    }
+
+    .nav-links .btn-nav:hover { background: #d4eb30; color: #000; }
+
+    /* ── Flash Messages ─────────────────────────────────────────── */
+    .flash-container {
+      position: fixed; top: 72px; right: 1.5rem; z-index: 200;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      max-width: 360px;
+    }
+
+    .flash {
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      font-family: var(--font-m);
+      border-left: 3px solid;
+      animation: slideIn 0.3s ease;
+    }
+
+    .flash.success { background:#0d1f14; border-color: var(--safe); color: var(--safe); }
+    .flash.danger  { background:#1f0d12; border-color: var(--danger); color: var(--danger); }
+    .flash.warning { background:#1a1a0a; border-color: var(--accent); color: var(--accent); }
+    .flash.info    { background:#0d0d1f; border-color: #7070ff; color: #9090ff; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ── Main content ───────────────────────────────────────────── */
+    main { flex: 1; position: relative; z-index: 1; }
+
+    /* ── Footer ─────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 2.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-family: var(--font-m);
+      position: relative; z-index: 1;
+    }
+
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--text-2); }
+
+    /* ── Utilities ──────────────────────────────────────────────── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.65rem 1.5rem;
+      border: none; border-radius: var(--radius);
+      font-family: var(--font-h);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn-primary:hover { background: #d4eb30; transform: translateY(-1px); }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+    }
+    .btn-ghost:hover { border-color: var(--text-2); color: var(--text); }
+
+    .tag {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 3px;
+      font-family: var(--font-m);
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+    }
+
+    .tag-fake { background:#2a0a12; color: var(--danger); border: 1px solid #4a1222; }
+    .tag-real { background:#0a2a1a; color: var(--safe);   border: 1px solid #124a2a; }
+
+    /* ── Scrollbar ──────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+  </style>
+
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<nav>
+  <a href="{{ url_for('home') }}" class="nav-logo">
+    TruthLens <span>AI</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="{{ url_for('home') }}">Detect</a></li>
+    <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+    <li><a href="{{ url_for('history') }}">History</a></li>
+    <li><a href="{{ url_for('about') }}">About</a></li>
+    {% if session.get('user_id') %}
+      <li><a href="{{ url_for('logout') }}" class="btn-nav">Sign Out</a></li>
+    {% else %}
+      <li><a href="{{ url_for('login') }}" class="btn-nav">Login</a></li>
+    {% endif %}
+  </ul>
+</nav>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for cat, msg in messages %}
+        <div class="flash {{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<main>{% block content %}{% endblock %}</main>
+
+<footer>
+  <span>TruthLens &copy; {{ 2025 }} — CNN-LSTM Hybrid Model</span>
+  <span>
+    <a href="{{ url_for('api_predict') }}" style="margin-right:1rem">API Docs</a>
+    Built with Flask + TensorFlow
+  </span>
+</footer>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

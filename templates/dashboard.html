@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — TruthLens{% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  .dash-page {
+    padding: 3rem 4rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 3rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .page-title {
+    font-family: var(--font-h);
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: var(--text);
+  }
+
+  .page-sub {
+    font-family: var(--font-m);
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    margin-top: 0.25rem;
+  }
+
+  /* ── Stat cards ──────────────────────────────────────────────────── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .stat-card:hover { border-color: var(--muted); }
+
+  .stat-card::before {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .stat-total::before  { background: var(--accent); }
+  .stat-fake::before   { background: var(--danger); }
+  .stat-real::before   { background: var(--safe); }
+  .stat-conf::before   { background: #7070ff; }
+
+  .stat-icon {
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .stat-num {
+    font-family: var(--font-h);
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    display: block;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+
+  .stat-label {
+    font-family: var(--font-m);
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── Chart row ───────────────────────────────────────────────────── */
+  .chart-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+
+  .chart-title {
+    font-family: var(--font-h);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 1.25rem;
+    letter-spacing: -0.02em;
+  }
+
+  .chart-wrap {
+    position: relative;
+    height: 220px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── Recent table ────────────────────────────────────────────────── */
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .table-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  .table-title {
+    font-family: var(--font-h);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    padding: 0.75rem 1.5rem;
+    text-align: left;
+    font-family: var(--font-m);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+
+  tbody td {
+    padding: 0.85rem 1.5rem;
+    font-size: 0.85rem;
+    color: var(--text-2);
+    border-bottom: 1px solid rgba(30,30,46,0.5);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--border); color: var(--text); }
+
+  .td-snippet {
+    max-width: 350px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-b);
+    font-weight: 300;
+  }
+
+  .td-time {
+    font-family: var(--font-m);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  @media (max-width: 900px) {
+    .dash-page { padding: 2rem 1.5rem; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .chart-row { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Analytics Dashboard</h2>
+      <p class="page-sub">REAL-TIME · DETECTION OVERVIEW</p>
+    </div>
+    <a href="{{ url_for('home') }}" class="btn btn-primary">+ New Detection</a>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-grid">
+    <div class="stat-card stat-total">
+      <span class="stat-icon">📊</span>
+      <span class="stat-num">{{ stats.total }}</span>
+      <span class="stat-label">Total Analyzed</span>
+    </div>
+    <div class="stat-card stat-fake">
+      <span class="stat-icon">⚠</span>
+      <span class="stat-num" style="color:var(--danger)">{{ stats.fake }}</span>
+      <span class="stat-label">Fake Detected ({{ stats.fake_pct }}%)</span>
+    </div>
+    <div class="stat-card stat-real">
+      <span class="stat-icon">✓</span>
+      <span class="stat-num" style="color:var(--safe)">{{ stats.real }}</span>
+      <span class="stat-label">Real News ({{ stats.real_pct }}%)</span>
+    </div>
+    <div class="stat-card stat-conf">
+      <span class="stat-icon">🎯</span>
+      <span class="stat-num" style="color:#9090ff">{{ stats.avg_confidence }}%</span>
+      <span class="stat-label">Avg Confidence</span>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="chart-row">
+    <div class="chart-card">
+      <div class="chart-title">Classification Split</div>
+      <div class="chart-wrap">
+        <canvas id="donutChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Detection Trend (Last 7 Days)</div>
+      <div class="chart-wrap">
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent table -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-title">Recent Detections</span>
+      <a href="{{ url_for('history') }}" class="btn btn-ghost" style="padding:0.4rem 0.9rem;font-size:0.8rem">View All</a>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Snippet</th>
+          <th>Result</th>
+          <th>Confidence</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in recent %}
+        <tr>
+          <td class="td-time">{{ r.id }}</td>
+          <td class="td-snippet">{{ r.input_text[:80] }}…</td>
+          <td>
+            {% if r.result == 'Fake News' %}
+              <span class="tag tag-fake">FAKE</span>
+            {% else %}
+              <span class="tag tag-real">REAL</span>
+            {% endif %}
+          </td>
+          <td style="font-family:var(--font-m);font-size:0.8rem">{{ r.confidence }}%</td>
+          <td class="td-time">{{ r.timestamp.strftime('%b %d, %H:%M') }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" style="text-align:center;color:var(--muted);padding:3rem;font-family:var(--font-m)">
+            No detections yet. <a href="{{ url_for('home') }}" style="color:var(--accent)">Run your first analysis →</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  Chart.defaults.color = '#555572';
+  Chart.defaults.font.family = "'DM Mono', monospace";
+
+  // Donut chart
+  new Chart(document.getElementById('donutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Fake News', 'Real News'],
+      datasets: [{
+        data: [{{ stats.fake }}, {{ stats.real }}],
+        backgroundColor: ['#ff4d6d', '#3cffa0'],
+        borderColor: '#12121a',
+        borderWidth: 3,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '72%',
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 20, font: { size: 11 } } }
+      }
+    }
+  });
+
+  // Trend chart
+  const trendLabels = {{ trend_labels|safe }};
+  const trendData   = {{ trend_data|safe }};
+
+  new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: trendLabels.length ? trendLabels : ['No data'],
+      datasets: [{
+        label: 'Detections',
+        data: trendData.length ? trendData : [0],
+        borderColor: '#e8ff3c',
+        backgroundColor: 'rgba(232,255,60,0.06)',
+        borderWidth: 2,
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: '#e8ff3c',
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1e1e2e' }, ticks: { font: { size: 11 } } },
+        y: { grid: { color: '#1e1e2e' }, ticks: { font: { size: 11 }, stepSize: 1 }, beginAtZero: true }
+      }
+    }
+  });
+</script>
+{% endblock %}

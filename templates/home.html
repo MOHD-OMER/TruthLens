@@ -1,0 +1,422 @@
+{% extends 'base.html' %}
+
+{% block title %}TruthLens — Detect Fake News with AI{% endblock %}
+
+{% block head %}
+<style>
+  /* ── Hero ─────────────────────────────────────────────────────── */
+  .hero {
+    min-height: calc(100vh - 64px);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-left {
+    padding: 5rem 3rem 5rem 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--font-m);
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    display: block; width: 24px; height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: var(--font-h);
+    font-size: clamp(2.8rem, 5vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--accent);
+    display: block;
+  }
+
+  .hero-desc {
+    font-size: 1rem;
+    color: var(--text-2);
+    max-width: 440px;
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+    font-weight: 300;
+  }
+
+  .hero-stats {
+    display: flex; gap: 2.5rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .hero-stat-num {
+    font-family: var(--font-h);
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text);
+    display: block;
+    letter-spacing: -0.04em;
+  }
+
+  .hero-stat-label {
+    font-family: var(--font-m);
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── Form Panel ────────────────────────────────────────────────── */
+  .hero-right {
+    padding: 5rem 4rem 5rem 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--surface);
+    position: relative;
+  }
+
+  .form-label-line {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+
+  .form-label {
+    font-family: var(--font-m);
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    color: var(--text-2);
+    text-transform: uppercase;
+  }
+
+  .char-count {
+    font-family: var(--font-m);
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 220px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font-b);
+    font-size: 0.92rem;
+    line-height: 1.65;
+    padding: 1.25rem;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    font-weight: 300;
+  }
+
+  textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(232,255,60,0.08);
+  }
+
+  textarea::placeholder { color: var(--muted); }
+
+  .form-actions {
+    display: flex; gap: 0.75rem;
+    margin-top: 1rem;
+    align-items: center;
+  }
+
+  .btn-submit {
+    flex: 1;
+    justify-content: center;
+    padding: 0.85rem;
+    font-size: 0.95rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-submit::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,0.15);
+    transform: translateX(-100%);
+    transition: transform 0.4s;
+  }
+
+  .btn-submit:hover::after { transform: translateX(0); }
+
+  .btn-clear {
+    padding: 0.85rem 1.25rem;
+  }
+
+  /* Sample buttons */
+  .samples-header {
+    font-family: var(--font-m);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin: 1.5rem 0 0.75rem;
+  }
+
+  .sample-btns {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+  }
+
+  .sample-btn {
+    background: var(--border);
+    border: none;
+    color: var(--text-2);
+    font-family: var(--font-m);
+    font-size: 0.75rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .sample-btn:hover { background: var(--muted); color: var(--text); }
+
+  /* ── Background accent ─────────────────────────────────────────── */
+  .bg-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.08;
+    pointer-events: none;
+  }
+
+  .glow-1 {
+    width: 500px; height: 500px;
+    background: var(--accent);
+    top: -150px; left: -100px;
+  }
+
+  .glow-2 {
+    width: 300px; height: 300px;
+    background: var(--danger);
+    bottom: -100px; right: 0;
+    opacity: 0.06;
+  }
+
+  /* ── Model badge ────────────────────────────────────────────────── */
+  .model-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--border);
+    border: 1px solid var(--muted);
+    border-radius: 100px;
+    padding: 0.3rem 0.8rem 0.3rem 0.4rem;
+    font-family: var(--font-m);
+    font-size: 0.72rem;
+    color: var(--text-2);
+    margin-bottom: 2rem;
+    width: fit-content;
+  }
+
+  .model-badge-dot {
+    width: 6px; height: 6px;
+    background: var(--safe);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  /* How it works strip */
+  .how-strip {
+    border-top: 1px solid var(--border);
+    padding: 3rem 4rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    position: relative; z-index: 1;
+  }
+
+  .step {
+    display: flex; flex-direction: column; gap: 0.5rem;
+  }
+
+  .step-num {
+    font-family: var(--font-m);
+    font-size: 0.72rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+
+  .step-title {
+    font-family: var(--font-h);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .step-desc {
+    font-size: 0.82rem;
+    color: var(--text-2);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; min-height: auto; }
+    .hero-left { border-right: none; border-bottom: 1px solid var(--border); padding: 3rem 2rem; }
+    .hero-right { padding: 3rem 2rem; }
+    .how-strip { grid-template-columns: 1fr 1fr; padding: 2rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="bg-glow glow-1"></div>
+  <div class="bg-glow glow-2"></div>
+
+  <div class="hero-left">
+    <p class="hero-eyebrow">CNN-LSTM Hybrid Neural Network</p>
+
+    <h1>
+      Separate fact<br>from <em>fiction.</em>
+    </h1>
+
+    <p class="hero-desc">
+      TruthLens uses a deep learning model trained on thousands of verified
+      real and fabricated news articles to score any piece of text in milliseconds.
+    </p>
+
+    <div class="model-badge">
+      <span class="model-badge-dot"></span>
+      Model online — 94.2% test accuracy
+    </div>
+
+    <div class="hero-stats">
+      <div>
+        <span class="hero-stat-num">CNN+LSTM</span>
+        <span class="hero-stat-label">Architecture</span>
+      </div>
+      <div>
+        <span class="hero-stat-num">100</span>
+        <span class="hero-stat-label">Token Sequence</span>
+      </div>
+      <div>
+        <span class="hero-stat-num">&lt;1s</span>
+        <span class="hero-stat-label">Inference Time</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="form-label-line">
+      <label class="form-label" for="news-text">Paste news article or headline</label>
+      <span class="char-count" id="charCount">0 characters</span>
+    </div>
+
+    <form method="POST" action="{{ url_for('predict') }}" id="detectForm">
+      <textarea
+        id="news-text"
+        name="text"
+        placeholder="e.g. Scientists discover new treatment that cures cancer overnight with no side effects..."
+        autofocus
+      ></textarea>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-submit">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          Analyze Text
+        </button>
+        <button type="button" class="btn btn-ghost btn-clear" onclick="clearForm()">Clear</button>
+      </div>
+    </form>
+
+    <p class="samples-header">Try sample inputs</p>
+    <div class="sample-btns">
+      <button class="sample-btn" onclick="loadSample('fake1')">🔴 Fake example</button>
+      <button class="sample-btn" onclick="loadSample('real1')">🟢 Real example</button>
+      <button class="sample-btn" onclick="loadSample('fake2')">🔴 Conspiracy</button>
+    </div>
+  </div>
+</section>
+
+<div class="how-strip">
+  <div class="step">
+    <span class="step-num">01 —</span>
+    <span class="step-title">Input</span>
+    <p class="step-desc">Paste any news article, headline, or social media post into the detector.</p>
+  </div>
+  <div class="step">
+    <span class="step-num">02 —</span>
+    <span class="step-title">Preprocess</span>
+    <p class="step-desc">Text is cleaned, stop-words removed, and tokenized using a trained vocabulary.</p>
+  </div>
+  <div class="step">
+    <span class="step-num">03 —</span>
+    <span class="step-title">Inference</span>
+    <p class="step-desc">Our CNN-LSTM hybrid extracts spatial and sequential patterns to score credibility.</p>
+  </div>
+  <div class="step">
+    <span class="step-num">04 —</span>
+    <span class="step-title">Result</span>
+    <p class="step-desc">Get an instant verdict with a confidence score and probability breakdown.</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const samples = {
+    fake1: "BREAKING: Government secretly putting 5G chips in COVID vaccines to track citizens. Whistleblower reveals shocking truth hidden from the public for years!",
+    real1: "The Federal Reserve raised interest rates by 0.25 percentage points on Wednesday, the tenth increase in the past year, as central bank officials continue their battle against inflation.",
+    fake2: "Scientists SUPPRESSED by Big Pharma: Miracle cure for all cancers discovered using household items. Doctors don't want you to know about this ONE weird trick."
+  };
+
+  const textarea = document.getElementById('news-text');
+  const counter  = document.getElementById('charCount');
+
+  textarea.addEventListener('input', () => {
+    counter.textContent = textarea.value.length + ' characters';
+  });
+
+  function loadSample(key) {
+    textarea.value = samples[key];
+    counter.textContent = textarea.value.length + ' characters';
+    textarea.focus();
+  }
+
+  function clearForm() {
+    textarea.value = '';
+    counter.textContent = '0 characters';
+    textarea.focus();
+  }
+
+  // Animate submit button
+  document.getElementById('detectForm').addEventListener('submit', function(e) {
+    const btn = this.querySelector('.btn-submit');
+    btn.textContent = 'Analyzing…';
+    btn.disabled = true;
+  });
+</script>
+{% endblock %}
