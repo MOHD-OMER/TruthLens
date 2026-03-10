@@ -146,7 +146,7 @@ VERDICT: FAKE or REAL
 REASON: One sentence explanation (max 20 words)
 
 News text: {text[:500]}"""
-        response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+        response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
         lines = response.text.strip().split('\n')
         verdict = None
         reason  = None
