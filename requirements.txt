@@ -6,3 +6,5 @@ pandas
 numpy
 gunicorn
 pillow
+google-genai
+python-dotenv
